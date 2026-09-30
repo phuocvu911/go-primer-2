@@ -93,7 +93,7 @@ func TestNonASCIIRunes(t *testing.T) {
 		{"ToUpper", ToUpper},
 		{"ToLower", ToLower},
 	}
-	runes := []rune{-1, -0x80, 0x80, 0x85, 0xE9, 0x1F600, 0x10FFFF}
+	runes := []rune{-1, -0x80, 0x80, 0x85, 0xE9, 0x1F600, 0x10FFFF, '\u00A0'}
 
 	for _, test := range predicates {
 		t.Run(test.name, func(t *testing.T) {
