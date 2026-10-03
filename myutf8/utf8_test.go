@@ -88,15 +88,15 @@ func TestEncodeRune(t *testing.T) {
 	}
 }
 
-func TestEncodeRuneRejectsInvalidRune(t *testing.T) {
+func TestEncodeRuneInvalidRune(t *testing.T) {
 	for _, r := range []rune{-1, 0xD800, std.MaxRune + 1} {
 		buffer := bytes.Repeat([]byte{0xA5}, 4)
 		n, ok := EncodeRune(buffer, r)
-		if ok || n != 0 {
-			t.Errorf("EncodeRune(%U) = (%d, %t), want (0, false)", r, n, ok)
+		if !ok || n != 3 {
+			t.Errorf("EncodeRune(%U) = (%d, %t), want (3, true)", r, n, ok)
 		}
-		if !bytes.Equal(buffer, bytes.Repeat([]byte{0xA5}, 4)) {
-			t.Errorf("EncodeRune(%U) modified the buffer on failure", r)
+		if !bytes.Equal(buffer, []byte{0xEF, 0xBF, 0xBD, 0xA5}) {
+			t.Errorf("EncodeRune(%U) unexpected output", r)
 		}
 	}
 }
