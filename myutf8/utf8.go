@@ -2,18 +2,13 @@ package myutf8
 
 // ValidRune checks r is a valid Unicode code point.
 func ValidRune(r rune) bool {
-	// 1. Check if it is in the surrogate half range
+	// the surrogate half range
 	if r >= 0xD800 && r <= 0xDFFF {
 		return false
 	}
 
-	// 2. Check if it exceeds the maximum Unicode code point
-	if r > 0x10FFFF {
-		return false
-	}
-
-	// 3. Optional: Filter out negative values if your input type allows them
-	if r < 0 {
+	//exceeds the maximum Unicode code point or negative
+	if r > 0x10FFFF || r < 0 {
 		return false
 	}
 
