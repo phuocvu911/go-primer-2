@@ -124,34 +124,35 @@ func TestEncodeRuneRejectsShortBuffer(t *testing.T) {
 	}
 }
 
-// func TestAppendRune(t *testing.T) {
-// 	tests := []struct {
-// 		name string
-// 		base []byte
-// 		r    rune
-// 		want []byte
-// 	}{
-// 		{"ASCII", []byte("prefix:"), 'A', []byte("prefix:A")},
-// 		{"two-byte", []byte("prefix:"), 0xA2, []byte("prefix:\xC2\xA2")},
-// 		{"three-byte", nil, 0x20AC, []byte{0xE2, 0x82, 0xAC}},
-// 		{"four-byte", []byte{0x01}, 0x1F600, []byte{0x01, 0xF0, 0x9F, 0x98, 0x80}},
-// 	}
+func TestAppendRune(t *testing.T) {
+	tests := []struct {
+		name string
+		base []byte
+		r    rune
+		want []byte
+	}{
+		{"ASCII", []byte("prefix:"), 'A', []byte("prefix:A")},
+		{"two-byte", []byte("prefix:"), 0xA2, []byte("prefix:\xC2\xA2")},
+		{"three-byte", nil, 0x20AC, []byte{0xE2, 0x82, 0xAC}},
+		{"four-byte", []byte{0x01}, 0x1F600, []byte{0x01, 0xF0, 0x9F, 0x98, 0x80}},
+	}
 
-// 	for _, test := range tests {
-// 		t.Run(test.name, func(t *testing.T) {
-// 			if got := AppendRune(test.base, test.r); !bytes.Equal(got, test.want) {
-// 				t.Errorf("AppendRune(% X, %U) = % X, want % X", test.base, test.r, got, test.want)
-// 			}
-// 		})
-// 	}
-// }
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			if got := AppendRune(test.base, test.r); !bytes.Equal(got, test.want) {
+				t.Errorf("AppendRune(% X, %U) = % X, want % X", test.base, test.r, got, test.want)
+			}
+		})
+	}
+}
 
-// func TestAppendRuneRejectsInvalidRune(t *testing.T) {
-// 	base := []byte("prefix")
-// 	for _, r := range []rune{-1, 0xD800, std.MaxRune + 1} {
-// 		got := AppendRune(base, r)
-// 		if !bytes.Equal(got, base) {
-// 			t.Errorf("AppendRune(%q, %U) = % X, want unchanged % X", base, r, got, base)
-// 		}
-// 	}
-// }
+func TestAppendRuneInvalidRune(t *testing.T) {
+	base := []byte("prefix")
+	for _, r := range []rune{-1, 0xD800, std.MaxRune + 1} {
+		got := AppendRune(base, r)
+		want := std.AppendRune(base, r)
+		if !bytes.Equal(got, want) {
+			t.Errorf("AppendRune(%q, %U) = % X, want % X", base, r, got, want)
+		}
+	}
+}

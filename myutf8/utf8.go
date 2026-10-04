@@ -81,7 +81,13 @@ func EncodeRune(p []byte, r rune) (int, bool) {
 	return lenRune, true
 }
 
-// // AppendRune appends the UTF-8 encoding of the rune r to p and returns the extended slice.
-// func AppendRune(p []byte, r rune) []byte {
-
-// }
+// AppendRune appends the UTF-8 encoding of the rune r to p and returns the extended slice.
+func AppendRune(p []byte, r rune) []byte {
+	if !ValidRune(r) {
+		r = RuneError
+	}
+	tail := make([]byte, RuneLen(r))
+	_, _ = EncodeRune(tail, r)
+	p = append(p, tail...)
+	return p
+}
