@@ -1,5 +1,13 @@
 package myutf8
 
+const (
+	maxRune1  = 0x7f
+	maxRune2  = 0x7ff
+	maxRune3  = 0xffff
+	maxrune4  = 0x10ffff
+	RuneError = '\uFFFD'
+)
+
 // ValidRune checks r is a valid Unicode code point.
 func ValidRune(r rune) bool {
 	// the surrogate half range
@@ -14,13 +22,6 @@ func ValidRune(r rune) bool {
 
 	return true
 }
-
-const (
-	maxRune1 = 0x7f
-	maxRune2 = 0x7ff
-	maxRune3 = 0xffff
-	maxrune4 = 0x10ffff
-)
 
 // RuneLen returns the number of bytes required to encode the rune r in UTF-8.
 //
@@ -45,8 +46,6 @@ func RuneLen(r rune) int {
 	}
 	return -1
 }
-
-const RuneError = '\uFFFD'
 
 // EncodeRune encodes the rune r into p and returns the number of bytes written.
 // p has to be large enough to contain r
