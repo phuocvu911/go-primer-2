@@ -1,7 +1,9 @@
 package mystrings
 
 import (
+	"strings"
 	"testing"
+	"unicode/utf8"
 )
 
 func TestIndex(t *testing.T) {
@@ -11,10 +13,13 @@ func TestIndex(t *testing.T) {
 		substr string
 		want   int
 	}{
-		{"found", "hello world", "world", 6},
+		{"found at the end", "hello", "o", 4},
+		{"found at the start", "hello", "h", 0},
+		{"found in the middle", "Hello", "l", 2},
 		{"missing", "hello", "x", -1},
+		{"substr is longer", "hello", "hellox", -1},
 		{"empty substring", "hello", "", 0},
-		{"unicode byte index", "café", "é", 3},
+		{"unicode byte index", "cafém", "m", 5},
 		{"empty string", "", "a", -1},
 	}
 	for _, test := range tests {
@@ -63,7 +68,7 @@ func TestCut(t *testing.T) {
 		{"empty separator", "abc", "", "", "abc", true},
 		{"separator at start", ":value", ":", "", "value", true},
 		{"separator at end", "name:", ":", "name", "", true},
-		{"unicode separator", "café", "é", "caf", "", true},
+		{"unicode separator", "cafém", "é", "caf", "m", true},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -84,7 +89,8 @@ func TestCount(t *testing.T) {
 	}{
 		{"repeated", "banana", "an", 2},
 		{"overlapping matches are not counted", "aaa", "aa", 1},
-		{"empty substring", "abc", "", 4},
+		{"empty substring 1", "abc", "", 4},
+		{"empty substring 2", "aébc", "", 5},
 		{"missing", "abc", "x", 0},
 		{"unicode", "ééé", "é", 3},
 	}
@@ -106,6 +112,7 @@ func TestIndexRune(t *testing.T) {
 	}{
 		{"ASCII", "hello", 'e', 1},
 		{"unicode byte index", "café", 'é', 3},
+		{"see é as 2 bytes", "cafém", 'm', 5},
 		{"missing", "hello", 'x', -1},
 		{"NUL", "a\x00b", 0, 1},
 		{"empty string", "", 'a', -1},
@@ -119,14 +126,45 @@ func TestIndexRune(t *testing.T) {
 	}
 }
 
+func TestIndexRuneRuneError(t *testing.T) {
+	tests := []struct {
+		name string
+		s    string
+	}{
+		{"empty string", ""},
+		{"valid ASCII only", "abc"},
+		{"valid multibyte only", "héllo"},
+		{"invalid byte in middle", "abc\xffdef"},
+		{"invalid byte at start", "\x80abc"},
+		{"invalid byte at end", "abc\xff"},
+		{"truncated 2-byte sequence", "ab\xc3"},
+		{"truncated 3-byte sequence", "ab\xe2\x82"},
+		{"invalid after multibyte rune", "héllo\xffx"},
+		{"multiple invalid bytes returns first", "a\xff\xfeb"},
+		{"overlong encoding of '/'", "a\xc0\xafb"},
+		{"literal U+FFFD is also matched", "ab\uFFFDcd"},
+		{"invalid byte before literal U+FFFD", "a\xfe\uFFFD"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := IndexRune(tt.s, utf8.RuneError)
+			want := strings.IndexRune(tt.s, utf8.RuneError)
+			if got != want {
+				t.Errorf("IndexRune(%q, RuneError) = %d, want %d", tt.s, got, want)
+			}
+		})
+	}
+}
+
 func TestTrimSpace(t *testing.T) {
 	tests := []struct {
 		input string
 		want  string
 	}{
 		{"  hello  ", "hello"},
-		{"\t\nhello\r\n", "hello"},
-		{"\u00a0hello\u00a0", "hello"},
+		{"\t\v\f\r\nhello\r\n", "hello"},
+		{"\u00a0hello\u00a0", "\u00a0hello\u00a0"}, //ASCII only
 		{"", ""},
 		{"already trimmed", "already trimmed"},
 		{" \t\n", ""},
@@ -145,7 +183,7 @@ func TestToLower(t *testing.T) {
 	}{
 		{"Hello, WORLD!", "hello, world!"},
 		{"Already lower", "already lower"},
-		{"ÉCLAIR", "éclair"},
+		{"ÉCLAIR", "Éclair"}, //ASCII only
 		{"123!", "123!"},
 		{"", ""},
 	}
