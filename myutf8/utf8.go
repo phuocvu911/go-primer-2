@@ -46,21 +46,23 @@ func RuneLen(r rune) int {
 	return -1
 }
 
+const RuneError = '\uFFFD'
+
 // EncodeRune encodes the rune r into p and returns the number of bytes written.
 // p has to be large enough to contain r
 func EncodeRune(p []byte, r rune) (int, bool) {
-	//check valid p and r
+	//check valid r
+	if !ValidRune(r) {
+		r = RuneError
+	}
+
+	//valid p
 	lenRune := RuneLen(r)
 	if lenRune > len(p) {
 		return 0, false
 	}
 
 	switch lenRune {
-	case -1:
-		p[0] = 0xEF
-		p[1] = 0xBF
-		p[2] = 0xBD
-		return 3, true
 	case 1:
 		p[0] = byte(r)
 	case 2:

@@ -110,6 +110,8 @@ func TestEncodeRuneRejectsShortBuffer(t *testing.T) {
 		{0xA2, 2},
 		{0x20AC, 3},
 		{0x1F600, 4},
+		{RuneError, 3},
+		{std.MaxRune + 2, 3},
 	} {
 		buffer := bytes.Repeat([]byte{0xA5}, test.need-1)
 		n, ok := EncodeRune(buffer, test.r)
